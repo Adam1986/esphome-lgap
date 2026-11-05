@@ -43,7 +43,7 @@ captive_portal:
 external_components:
   - source:
       type: git
-      url: https://github.com/mystardious/esphome-lgap
+      url: https://github.com/jourdant/esphome-lgap
       ref: main
     components: [ "lgap"]
     refresh: 0sec
@@ -80,6 +80,10 @@ lgap:
     tx_byte_0: 0x80            # Frame header byte
 
 # Climate entity for single zone
+# Single-IDU setup: entities remain on the main ESPHome device.
+# Sensors display under Sensors; switches and number controls under Controls.
+# The YAML zone value is sent directly as the LGAP address; verify it on your system.
+# A single IDU is not necessarily address 0 on every LG installation.
 climate:
   - platform: lgap
     id: lgap_zone_1
