@@ -3,7 +3,6 @@ import esphome.config_validation as cv
 from esphome.components import climate, sensor, number, switch
 from esphome.const import (
     CONF_ID,
-    ENTITY_CATEGORY_DIAGNOSTIC,
     CONF_NAME,
     CONF_MODE,
     UNIT_CELSIUS,
@@ -66,41 +65,34 @@ CONFIG_SCHEMA = climate.climate_schema(
         cv.Optional(CONF_SUPPORTS_TURBO_FAN, default=False): cv.boolean,
         cv.Optional(CONF_SUPPORTS_PLASMA, default=False): cv.boolean,
         cv.Optional(CONF_PIPE_IN_SENSOR): sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_PIPE_OUT_SENSOR): sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ERROR_CODE_SENSOR): sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ZONE_ACTIVE_LOAD_SENSOR): sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ZONE_POWER_STATE_SENSOR): sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ZONE_DESIGN_LOAD_SENSOR): sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ODU_TOTAL_LOAD_SENSOR): sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
@@ -110,7 +102,6 @@ CONFIG_SCHEMA = climate.climate_schema(
             device_class=DEVICE_CLASS_DURATION,
         ),
         cv.Optional(CONF_TIMER_REMAINING): sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_MINUTE,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_DURATION,
@@ -200,7 +191,6 @@ async def to_code(config):
         
         # Build and validate config using sensor_schema to get all defaults
         sensor_config_schema = sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
@@ -234,7 +224,6 @@ async def to_code(config):
         
         # Build and validate config using sensor_schema to get all defaults
         sensor_config_schema = sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
@@ -264,7 +253,6 @@ async def to_code(config):
             sens_name = f"{friendly_name} Error Code"
         
         sens_config = sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         )({
@@ -303,7 +291,6 @@ async def to_code(config):
             
             # Build and validate config
             sensor_config_schema = sensor.sensor_schema(
-                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
             )
@@ -341,7 +328,6 @@ async def to_code(config):
         )({
             CONF_ID: num_id,
             CONF_NAME: num_name,
-            "entity_category": "config",  # Mark as configuration entity
         })
         
         num = cg.new_Pvariable(num_id)
@@ -367,7 +353,6 @@ async def to_code(config):
             sens_name = f"{friendly_name} Timer Remaining"
         
         sens_config = sensor.sensor_schema(
-            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_MINUTE,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_DURATION,
@@ -400,7 +385,6 @@ async def to_code(config):
             CONF_ID: sw_id,
             CONF_NAME: sw_name,
             "restore_mode": "RESTORE_DEFAULT_OFF",  # Persist control lock state
-            "entity_category": "config",  # Mark as configuration entity
         })
         
         sw = cg.new_Pvariable(sw_id)
@@ -435,7 +419,6 @@ async def to_code(config):
                 CONF_ID: sw_id,
                 CONF_NAME: sw_name,
                 "restore_mode": "RESTORE_DEFAULT_OFF",  # Persist lock states across reboots
-                "entity_category": "config",  # Mark as configuration entity
             })
             
             sw = cg.new_Pvariable(sw_id)
@@ -463,7 +446,6 @@ async def to_code(config):
                 CONF_ID: sw_id,
                 CONF_NAME: sw_name,
                 "restore_mode": "RESTORE_DEFAULT_OFF",  # Persist plasma state
-                "entity_category": "config",  # Mark as configuration entity
             })
             
             sw = cg.new_Pvariable(sw_id)
