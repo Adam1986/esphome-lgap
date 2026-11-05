@@ -3,6 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import climate, sensor, number, switch
 from esphome.const import (
     CONF_ID,
+    ENTITY_CATEGORY_DIAGNOSTIC,
     CONF_NAME,
     CONF_MODE,
     UNIT_CELSIUS,
@@ -65,34 +66,41 @@ CONFIG_SCHEMA = climate.climate_schema(
         cv.Optional(CONF_SUPPORTS_TURBO_FAN, default=False): cv.boolean,
         cv.Optional(CONF_SUPPORTS_PLASMA, default=False): cv.boolean,
         cv.Optional(CONF_PIPE_IN_SENSOR): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_PIPE_OUT_SENSOR): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ERROR_CODE_SENSOR): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ZONE_ACTIVE_LOAD_SENSOR): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ZONE_POWER_STATE_SENSOR): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ZONE_DESIGN_LOAD_SENSOR): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
         cv.Optional(CONF_ODU_TOTAL_LOAD_SENSOR): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
@@ -102,6 +110,7 @@ CONFIG_SCHEMA = climate.climate_schema(
             device_class=DEVICE_CLASS_DURATION,
         ),
         cv.Optional(CONF_TIMER_REMAINING): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_MINUTE,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_DURATION,
@@ -148,13 +157,6 @@ def _lgap_inherit_device_id(parent_config, entity_config):
 
 
 
-def _lgap_diagnostic_sensor(sensor_config):
-    """Categorise generated telemetry as diagnostic."""
-    updated = dict(sensor_config)
-    updated["entity_category"] = (
-        cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC
-    )
-    return updated
 
 
 async def to_code(config):
@@ -180,7 +182,7 @@ async def to_code(config):
     
     # Set pipe-in temperature sensor - auto-generate name if not explicitly configured
     if CONF_PIPE_IN_SENSOR in config:
-        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_IN_SENSOR])))
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_IN_SENSOR]))
         cg.add(var.set_pipe_in_sensor(sens))
     else:
         # Auto-generate pipe-in sensor based on climate ID and name
@@ -198,6 +200,7 @@ async def to_code(config):
         
         # Build and validate config using sensor_schema to get all defaults
         sensor_config_schema = sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
@@ -208,12 +211,12 @@ async def to_code(config):
             CONF_NAME: sensor_name,
         })
         
-        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, pipe_in_config)))
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, pipe_in_config))
         cg.add(var.set_pipe_in_sensor(sens))
     
     # Set pipe-out temperature sensor - auto-generate name if not explicitly configured
     if CONF_PIPE_OUT_SENSOR in config:
-        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_OUT_SENSOR])))
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_OUT_SENSOR]))
         cg.add(var.set_pipe_out_sensor(sens))
     else:
         # Auto-generate pipe-out sensor based on climate ID and name
@@ -231,6 +234,7 @@ async def to_code(config):
         
         # Build and validate config using sensor_schema to get all defaults
         sensor_config_schema = sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_CELSIUS,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_TEMPERATURE,
@@ -241,12 +245,12 @@ async def to_code(config):
             CONF_NAME: sensor_name,
         })
         
-        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, pipe_out_config)))
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, pipe_out_config))
         cg.add(var.set_pipe_out_sensor(sens))
     
     # Error code sensor - auto-generate if not explicitly configured
     if CONF_ERROR_CODE_SENSOR in config:
-        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[CONF_ERROR_CODE_SENSOR])))
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_ERROR_CODE_SENSOR]))
         cg.add(var.set_error_code_sensor(sens))
     else:
         from esphome.core import ID
@@ -260,6 +264,7 @@ async def to_code(config):
             sens_name = f"{friendly_name} Error Code"
         
         sens_config = sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             accuracy_decimals=0,
             state_class=STATE_CLASS_MEASUREMENT,
         )({
@@ -267,7 +272,7 @@ async def to_code(config):
             CONF_NAME: sens_name,
         })
         
-        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, sens_config)))
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sens_config))
         cg.add(var.set_error_code_sensor(sens))
     
     # Auto-generate LonWorks-aligned load sensors
@@ -281,7 +286,7 @@ async def to_code(config):
     
     for conf_key, setter_method, id_suffix, name_suffix in lonworks_load_sensors:
         if conf_key in config:
-            sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[conf_key])))
+            sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[conf_key]))
             cg.add(getattr(var, setter_method)(sens))
         else:
             # Auto-generate sensor
@@ -298,6 +303,7 @@ async def to_code(config):
             
             # Build and validate config
             sensor_config_schema = sensor.sensor_schema(
+                entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
                 accuracy_decimals=0,
                 state_class=STATE_CLASS_MEASUREMENT,
             )
@@ -306,7 +312,7 @@ async def to_code(config):
                 CONF_NAME: sensor_name,
             })
             
-            sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, sensor_config)))
+            sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sensor_config))
             cg.add(getattr(var, setter_method)(sens))
     
     # Sleep timer - auto-generate if not explicitly configured
@@ -347,7 +353,7 @@ async def to_code(config):
     
     # Timer remaining sensor (shows countdown)
     if CONF_TIMER_REMAINING in config:
-        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[CONF_TIMER_REMAINING])))
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_TIMER_REMAINING]))
         cg.add(var.set_timer_remaining_sensor(sens))
     else:
         from esphome.core import ID
@@ -361,6 +367,7 @@ async def to_code(config):
             sens_name = f"{friendly_name} Timer Remaining"
         
         sens_config = sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             unit_of_measurement=UNIT_MINUTE,
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_DURATION,
@@ -370,7 +377,7 @@ async def to_code(config):
             CONF_NAME: sens_name,
         })
         
-        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, sens_config)))
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sens_config))
         cg.add(var.set_timer_remaining_sensor(sens))
     
     # Control lock switch - auto-generate if not explicitly configured
