@@ -147,6 +147,17 @@ def _lgap_inherit_device_id(parent_config, entity_config):
     }
 
 
+
+def _lgap_diagnostic_sensor(sensor_config):
+    """Categorise generated telemetry as diagnostic."""
+    updated = dict(sensor_config)
+    updated.setdefault(
+        "entity_category",
+        cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC,
+    )
+    return updated
+
+
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -170,7 +181,7 @@ async def to_code(config):
     
     # Set pipe-in temperature sensor - auto-generate name if not explicitly configured
     if CONF_PIPE_IN_SENSOR in config:
-        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_IN_SENSOR]))
+        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_IN_SENSOR])))
         cg.add(var.set_pipe_in_sensor(sens))
     else:
         # Auto-generate pipe-in sensor based on climate ID and name
@@ -198,12 +209,12 @@ async def to_code(config):
             CONF_NAME: sensor_name,
         })
         
-        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, pipe_in_config))
+        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, pipe_in_config)))
         cg.add(var.set_pipe_in_sensor(sens))
     
     # Set pipe-out temperature sensor - auto-generate name if not explicitly configured
     if CONF_PIPE_OUT_SENSOR in config:
-        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_OUT_SENSOR]))
+        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_OUT_SENSOR])))
         cg.add(var.set_pipe_out_sensor(sens))
     else:
         # Auto-generate pipe-out sensor based on climate ID and name
@@ -231,12 +242,12 @@ async def to_code(config):
             CONF_NAME: sensor_name,
         })
         
-        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, pipe_out_config))
+        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, pipe_out_config)))
         cg.add(var.set_pipe_out_sensor(sens))
     
     # Error code sensor - auto-generate if not explicitly configured
     if CONF_ERROR_CODE_SENSOR in config:
-        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_ERROR_CODE_SENSOR]))
+        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[CONF_ERROR_CODE_SENSOR])))
         cg.add(var.set_error_code_sensor(sens))
     else:
         from esphome.core import ID
@@ -257,21 +268,21 @@ async def to_code(config):
             CONF_NAME: sens_name,
         })
         
-        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sens_config))
+        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, sens_config)))
         cg.add(var.set_error_code_sensor(sens))
     
     # Auto-generate LonWorks-aligned load sensors
     # These track bytes in the 16-byte LGAP message matching LG's PI485→LonWorks mappings
     lonworks_load_sensors = [
-        (CONF_ZONE_ACTIVE_LOAD_SENSOR, "set_zone_active_load_sensor", "zone_active_load", "Zone Active Load"),
-        (CONF_ZONE_POWER_STATE_SENSOR, "set_zone_power_state_sensor", "zone_power_state", "Zone Power State"),
-        (CONF_ZONE_DESIGN_LOAD_SENSOR, "set_zone_design_load_sensor", "zone_design_load", "Zone Design Load"),
-        (CONF_ODU_TOTAL_LOAD_SENSOR, "set_odu_total_load_sensor", "odu_total_load", "ODU Total Load"),
+        (CONF_ZONE_ACTIVE_LOAD_SENSOR, "set_zone_active_load_sensor", "zone_active_load", "EEV Pulses"),
+        (CONF_ZONE_POWER_STATE_SENSOR, "set_zone_power_state_sensor", "zone_power_state", "Power State"),
+        (CONF_ZONE_DESIGN_LOAD_SENSOR, "set_zone_design_load_sensor", "zone_design_load", "IDU Capacity"),
+        (CONF_ODU_TOTAL_LOAD_SENSOR, "set_odu_total_load_sensor", "odu_total_load", "ODU Compressor Frequency"),
     ]
     
     for conf_key, setter_method, id_suffix, name_suffix in lonworks_load_sensors:
         if conf_key in config:
-            sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[conf_key]))
+            sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[conf_key])))
             cg.add(getattr(var, setter_method)(sens))
         else:
             # Auto-generate sensor
@@ -296,7 +307,7 @@ async def to_code(config):
                 CONF_NAME: sensor_name,
             })
             
-            sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sensor_config))
+            sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, sensor_config)))
             cg.add(getattr(var, setter_method)(sens))
     
     # Sleep timer - auto-generate if not explicitly configured
@@ -337,7 +348,7 @@ async def to_code(config):
     
     # Timer remaining sensor (shows countdown)
     if CONF_TIMER_REMAINING in config:
-        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_TIMER_REMAINING]))
+        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, config[CONF_TIMER_REMAINING])))
         cg.add(var.set_timer_remaining_sensor(sens))
     else:
         from esphome.core import ID
@@ -360,7 +371,7 @@ async def to_code(config):
             CONF_NAME: sens_name,
         })
         
-        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sens_config))
+        sens = await sensor.new_sensor(_lgap_diagnostic_sensor(_lgap_inherit_device_id(config, sens_config)))
         cg.add(var.set_timer_remaining_sensor(sens))
     
     # Control lock switch - auto-generate if not explicitly configured
