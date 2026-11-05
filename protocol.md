@@ -40,7 +40,7 @@ From what I've found so far, there is a single 8 byte request message which retu
 
 ### LGAP Request (TX Data - Controller → AC)
 
-The request message is used to query the current state of the specified zone or Indoor Unit (IDU). For ODUs with only a single IDU connected, you will use Zone Number 0. For ODUs with multiple IDUs attached, you will need to refer to the zone number programmed into each IDU and subtract 1 due to the zones being zero indexed. There are instructions on YouTube for retrieving the Zone Number from either the wall panel or remote.
+The request message is used to query the current state of the specified zone or Indoor Unit (IDU). The LGAP `zone:` setting is transmitted directly as the address in TX3. Verify the central-control address programmed into each indoor unit. Do not automatically subtract one. For example, hexadecimal address `0A` is configured as `zone: 10` in decimal. Addressing may vary between installations. There are instructions on YouTube for retrieving the Zone Number from either the wall panel or remote.
 
 It is also possible to send a desired state as part of the request message. If the R/W flag is set to Write, then the ODU will pass the request on to the relevant IDU and report back the new state. This allows us to change settings, then go back to Read mode for polling.
 
@@ -106,10 +106,10 @@ Format:
 |8 (RX8)|```XXXX_XXXX```|**Room Temperature**|Raw 0-255|(192 - value) / 3 = °C|
 |9 (RX9)|```XXXX_XXXX```|**Pipe In Temperature**|Raw 0-255|(192 - value) / 3 = °C|
 |10 (RX10)|```XXXX_XXXX```|**Pipe Out Temperature**|Raw 0-255|(192 - value) / 3 = °C|
-|11 (RX11)|```XXXX_XXXX```|**Zone Active Load**|0-255|Dynamic load index<br/>LonWorks `nvoLoadEstimate`<br/>204 = idle, lower = higher load|
-|12 (RX12)|```XXXX_XXXX```|**Zone Power State Flag**|0: Running<br/>1: Off/Idle|LonWorks `nvoOnOff`<br/>May jitter during transitions|
-|13 (RX13)|```XXXX_XXXX```|**Zone Design Load Index**|0-255|Fixed capacity/duct size<br/>LonWorks `nciRatedCapacity`<br/>e.g., 9, 12, 24, 36...|
-|14 (RX14)|```XXXX_XXXX```|**ODU Total Load**|0-255|System-wide load index<br/>LonWorks `nvoThermalLoad`<br/>~Sum of active zone loads|
+|11 (RX11)|```XXXX_XXXX```|**EEV Pulses**|0-255|Dynamic load index<br/>LonWorks `nvoLoadEstimate`<br/>204 = idle, lower = higher load|
+|12 (RX12)|```XXXX_XXXX```|**Power State Flag**|0: Running<br/>1: Off/Idle|LonWorks `nvoOnOff`<br/>May jitter during transitions|
+|13 (RX13)|```XXXX_XXXX```|**IDU Capacity Index**|0-255|Fixed capacity/duct size<br/>LonWorks `nciRatedCapacity`<br/>e.g., 9, 12, 24, 36...|
+|14 (RX14)|```XXXX_XXXX```|**ODU Compressor Frequency**|0-255|System-wide load index<br/>LonWorks `nvoThermalLoad`<br/>~Sum of active zone loads|
 |15 (RX15)|```XXXX_XXXX```|Checksum|0-255|(sum of RX0-RX14) XOR 0x55|
 
 <br/>
@@ -128,16 +128,39 @@ Celsius = (192 - raw_byte) / 3
 ```
 Example: `0x66 (102) → (192 - 102) / 3 = 30°C`
 
+
+### Telemetry Interpretation Notes
+
+The protocol response byte positions and raw values
+remain unchanged. The following names are used by
+the ESPHome integration:
+
+| Byte | Display name | Interpretation |
+| --- | --- | --- |
+| RX11 | EEV Pulses | EEV-related value; scaling unverified |
+| RX12 | Power State | Indoor-unit operating state flag |
+| RX13 | IDU Capacity | Capacity-related index; not directly BTU/h |
+| RX14 | ODU Compressor Frequency | Shared ODU value; Hz calibration unverified |
+
+RX14 was observed to report the same value across
+multiple indoor units connected to one outdoor unit.
+This supports the shared ODU interpretation but does
+not independently establish the measurement units.
+
+Earlier load-estimation and LonWorks mappings in this
+document should be considered provisional.
+
+
 ### LonWorks Protocol Mapping
 
-Bytes 11-14 align perfectly with LG's LonWorks BMS integration protocol:
+An earlier interpretation associated RX11-RX14 with the following LonWorks fields. This mapping remains tentative:
 
 |LGAP Byte|ESPHome Name|LonWorks Field|Purpose|
 |--|--|--|--|
-|11|Zone Active Load|`nvoLoadEstimate` / `nvoUnitLoad`|Dynamic real-time load per zone|
-|12|Zone Power State|`nvoOnOff`|Zone ON/OFF boolean|
-|13|Zone Design Load|`nciRatedCapacity`|Fixed design capacity weight|
-|14|ODU Total Load|`nvoThermalLoad` / `nvoOduLoadFactor`|Total compressor load|
+|11|EEV Pulses|`nvoLoadEstimate` / `nvoUnitLoad`|Dynamic real-time load per zone|
+|12|Power State|`nvoOnOff`|Zone ON/OFF boolean|
+|13|IDU Capacity|`nciRatedCapacity`|Fixed design capacity weight|
+|14|ODU Compressor Frequency|`nvoThermalLoad` / `nvoOduLoadFactor`|Total compressor load|
 
 These bytes enable advanced energy monitoring, load balancing analysis, and compressor duty cycle tracking.
 
@@ -161,10 +184,10 @@ The following features from the PMBUSB00A Modbus gateway ([Installation Guide](h
 |Control Lock (Child Lock)|TX4 bit2|RX1 bit2|✅ Implemented|
 |Plasma Ion Control|TX4 bit4|RX1 bit4|✅ Implemented (optional)|
 |Error/Alarm Code|N/A|RX5|✅ Implemented|
-|Zone Active Load (dynamic)|N/A|RX11|✅ Implemented|
-|Zone Power State Flag|N/A|RX12|✅ Implemented|
-|Zone Design Load (capacity)|N/A|RX13|✅ Implemented|
-|ODU Total Load|N/A|RX14|✅ Implemented|
+|EEV Pulses (dynamic)|N/A|RX11|✅ Implemented|
+|Power State Flag|N/A|RX12|✅ Implemented|
+|IDU Capacity (capacity)|N/A|RX13|✅ Implemented|
+|ODU Compressor Frequency|N/A|RX14|✅ Implemented|
 
 ### Advanced Lock Features (ESPHome-Specific)
 
@@ -269,9 +292,9 @@ Protocol only supports basic control lock (TX4 bit2). Advanced lock features (te
 - Verify RX2 matches TX2 to confirm response correlation
 - Handle zone not found (0-byte response) gracefully
 
-### Load Monitoring Best Practices
+### Experimental Load Estimates (Unverified)
 
-Bytes RX11-14 provide valuable load data:
+The following historical calculations are experimental and have not been validated against the newer field interpretations. Do not use them for energy accounting or operational control:
 
 ```python
 # Zone efficiency (0-1, where 1 = maximum load)
