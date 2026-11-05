@@ -5,13 +5,6 @@ esphome:
   name: lg-aircon
   friendly_name: LG Air Conditioner
 
-  # Optional for multiple indoor units: define an ESPHome sub-device per IDU.
-  # devices:
-  #   - id: living_room_device
-  #     name: "Living Room"
-  #   - id: bedroom_device
-  #     name: "Bedroom"
-
 esp32:
   board: m5stack-atom
   framework:
@@ -50,7 +43,7 @@ captive_portal:
 external_components:
   - source:
       type: git
-      url: https://github.com/jourdant/esphome-lgap
+      url: https://github.com/mystardious/esphome-lgap
       ref: main
     components: [ "lgap"]
     refresh: 0sec
@@ -94,7 +87,6 @@ climate:
     id: lgap_zone_0
     name: 'Living Room'
     lgap_id: lgap1
-    # device_id: living_room_device  # Uncomment with esphome.devices
     zone: 0
     # All advanced features disabled by default for clean UI
     # Auto-generated entities include:
@@ -137,10 +129,10 @@ climate:
 # - Pipe In Temperature - Refrigerant inlet temperature
 # - Pipe Out Temperature - Refrigerant outlet temperature
 # - Error Code - LG service error codes (0 = OK)
-# - EEV Pulses - Real-time dynamic load (LonWorks nvoLoadEstimate)
-# - Power State - ON/OFF state flag (LonWorks nvoOnOff)
-# - IDU Capacity - Fixed capacity index (LonWorks nciRatedCapacity)
-# - ODU Compressor Frequency - Total outdoor unit load across all zones
+# - Zone Active Load - Real-time dynamic load (LonWorks nvoLoadEstimate)
+# - Zone Power State - ON/OFF state flag (LonWorks nvoOnOff)
+# - Zone Design Load - Fixed capacity index (LonWorks nciRatedCapacity)
+# - ODU Total Load - Total outdoor unit load across all zones
 # - Timer Remaining - Sleep timer countdown (minutes)
 #
 # CONTROLS:

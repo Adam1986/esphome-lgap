@@ -25,10 +25,10 @@ One of the best benefits of using this integration is you can use a single LGAP 
 - ✨ **Error code sensor** - Exposes LG service error codes (0 = OK)
 
 ### Load Monitoring (LonWorks Compatible)
-- ✨ **EEV Pulses** - Real-time dynamic load per zone (`nvoLoadEstimate`)
-- ✨ **Power State** - ON/OFF state flag (`nvoOnOff`)
-- ✨ **IDU Capacity** - Fixed capacity/duct size index (`nciRatedCapacity`)
-- ✨ **ODU Compressor Frequency** - System-wide compressor load (`nvoThermalLoad`)
+- ✨ **Zone Active Load** - Real-time dynamic load per zone (`nvoLoadEstimate`)
+- ✨ **Zone Power State** - ON/OFF state flag (`nvoOnOff`)
+- ✨ **Zone Design Load** - Fixed capacity/duct size index (`nciRatedCapacity`)
+- ✨ **ODU Total Load** - System-wide compressor load (`nvoThermalLoad`)
 
 ### Sleep Timer
 - ✨ **Persistent timer duration** - User sets duration once (0-420 minutes), stays saved
@@ -153,7 +153,7 @@ I am making the assumption that you're also using the M5Stack devices as listed 
 external_components:
   - source:
       type: git
-      url: https://github.com/jourdant/esphome-lgap
+      url: https://github.com/mystardious/esphome-lgap  # or jourdant/esphome-lgap
       ref: main
     components: [ "lgap"]
     refresh: 0sec
@@ -227,52 +227,6 @@ If you want to add extra zones, you can reference the same ```lgap_id``` on the 
 
 The LGAP component supports many advanced features that can be optionally enabled per zone. All features are **disabled by default** for a clean, minimal interface.
 
-### Organising multiple indoor units with ESPHome sub-devices
-
-ESPHome can expose several **logical Home Assistant devices** from a single LGAP
-controller. This avoids a single device page containing the sensors and controls
-for every connected indoor unit. All auto-generated sensors, switches, and
-sleep-timer entities follow the parent LGAP climate device.
-
-```yaml
-esphome:
-  name: lgap-gateway
-  friendly_name: LGAP Gateway
-  devices:
-    - id: living_room_device
-      name: Living Room
-    - id: bedroom_device
-      name: Bedroom
-
-# Include the normal ESP32, UART, LGAP and network configuration above/below.
-climate:
-  - platform: lgap
-    id: living_room
-    name: Living Room
-    device_id: living_room_device
-    lgap_id: lgap1
-    zone: 1  # Example: use the actual configured LG central-control address
-  - platform: lgap
-    id: bedroom
-    name: Bedroom
-    device_id: bedroom_device
-    lgap_id: lgap1
-    zone: 2
-```
-
-The `device_id` property is optional. For a single indoor unit, a sub-device is
-not needed. The `zone:` setting remains the protocol address identifier; it is
-not a Home Assistant grouping or ordering number. Check the actual configured
-central-control address rather than assuming all systems start at zero.
-
-The entity layout now uses Home Assistant's normal **Controls** and **Sensors**
-sections. Sleep timers remain available and unchanged.
-
-**Telemetry names:** EEV Pulses (RX11), Power State (RX12), IDU Capacity (RX13),
-and ODU Compressor Frequency (RX14). These are raw readings; do not assume BTU/h
-or Hz units or apply conversions without confirming your equipment's encoding.
-Field observations suggest RX14 is a shared outdoor-unit value.
-
 ### Available Configuration Options
 
 ```yaml
@@ -314,10 +268,10 @@ The component automatically creates the following sensors for each zone:
 - **Pipe In Temperature** - Refrigerant pipe inlet temperature (°C)
 - **Pipe Out Temperature** - Refrigerant pipe outlet temperature (°C)
 - **Error Code** - Service error codes (0 = OK)
-- **EEV Pulses** - Real-time dynamic load index (LonWorks `nvoLoadEstimate`)
-- **Power State** - Zone on/off state flag (LonWorks `nvoOnOff`)
-- **IDU Capacity** - Fixed design capacity index (LonWorks `nciRatedCapacity`)
-- **ODU Compressor Frequency** - Total outdoor unit load across all zones (LonWorks `nvoThermalLoad`)
+- **Zone Active Load** - Real-time dynamic load index (LonWorks `nvoLoadEstimate`)
+- **Zone Power State** - Zone on/off state flag (LonWorks `nvoOnOff`)
+- **Zone Design Load** - Fixed design capacity index (LonWorks `nciRatedCapacity`)
+- **ODU Total Load** - Total outdoor unit load across all zones (LonWorks `nvoThermalLoad`)
 
 ### Auto-Generated Controls
 
