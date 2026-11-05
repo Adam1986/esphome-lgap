@@ -151,9 +151,8 @@ def _lgap_inherit_device_id(parent_config, entity_config):
 def _lgap_diagnostic_sensor(sensor_config):
     """Categorise generated telemetry as diagnostic."""
     updated = dict(sensor_config)
-    updated.setdefault(
-        "entity_category",
-        cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC,
+    updated["entity_category"] = (
+        cg.EntityCategory.ENTITY_CATEGORY_DIAGNOSTIC
     )
     return updated
 
