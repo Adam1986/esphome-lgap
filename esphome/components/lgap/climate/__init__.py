@@ -129,6 +129,24 @@ CONFIG_SCHEMA = climate.climate_schema(
 ).extend(cv.COMPONENT_SCHEMA)
 
 
+
+from esphome.const import CONF_DEVICE_ID
+
+
+def _lgap_inherit_device_id(parent_config, entity_config):
+    """Assign generated entities to their LGAP climate sub-device."""
+    if CONF_DEVICE_ID not in parent_config:
+        return entity_config
+
+    if CONF_DEVICE_ID in entity_config:
+        return entity_config
+
+    return {
+        **entity_config,
+        CONF_DEVICE_ID: parent_config[CONF_DEVICE_ID],
+    }
+
+
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -152,7 +170,7 @@ async def to_code(config):
     
     # Set pipe-in temperature sensor - auto-generate name if not explicitly configured
     if CONF_PIPE_IN_SENSOR in config:
-        sens = await sensor.new_sensor(config[CONF_PIPE_IN_SENSOR])
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_IN_SENSOR]))
         cg.add(var.set_pipe_in_sensor(sens))
     else:
         # Auto-generate pipe-in sensor based on climate ID and name
@@ -180,12 +198,12 @@ async def to_code(config):
             CONF_NAME: sensor_name,
         })
         
-        sens = await sensor.new_sensor(pipe_in_config)
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, pipe_in_config))
         cg.add(var.set_pipe_in_sensor(sens))
     
     # Set pipe-out temperature sensor - auto-generate name if not explicitly configured
     if CONF_PIPE_OUT_SENSOR in config:
-        sens = await sensor.new_sensor(config[CONF_PIPE_OUT_SENSOR])
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_PIPE_OUT_SENSOR]))
         cg.add(var.set_pipe_out_sensor(sens))
     else:
         # Auto-generate pipe-out sensor based on climate ID and name
@@ -213,12 +231,12 @@ async def to_code(config):
             CONF_NAME: sensor_name,
         })
         
-        sens = await sensor.new_sensor(pipe_out_config)
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, pipe_out_config))
         cg.add(var.set_pipe_out_sensor(sens))
     
     # Error code sensor - auto-generate if not explicitly configured
     if CONF_ERROR_CODE_SENSOR in config:
-        sens = await sensor.new_sensor(config[CONF_ERROR_CODE_SENSOR])
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_ERROR_CODE_SENSOR]))
         cg.add(var.set_error_code_sensor(sens))
     else:
         from esphome.core import ID
@@ -239,7 +257,7 @@ async def to_code(config):
             CONF_NAME: sens_name,
         })
         
-        sens = await sensor.new_sensor(sens_config)
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sens_config))
         cg.add(var.set_error_code_sensor(sens))
     
     # Auto-generate LonWorks-aligned load sensors
@@ -253,7 +271,7 @@ async def to_code(config):
     
     for conf_key, setter_method, id_suffix, name_suffix in lonworks_load_sensors:
         if conf_key in config:
-            sens = await sensor.new_sensor(config[conf_key])
+            sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[conf_key]))
             cg.add(getattr(var, setter_method)(sens))
         else:
             # Auto-generate sensor
@@ -278,7 +296,7 @@ async def to_code(config):
                 CONF_NAME: sensor_name,
             })
             
-            sens = await sensor.new_sensor(sensor_config)
+            sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sensor_config))
             cg.add(getattr(var, setter_method)(sens))
     
     # Sleep timer - auto-generate if not explicitly configured
@@ -286,7 +304,7 @@ async def to_code(config):
     if CONF_SLEEP_TIMER in config:
         num = cg.new_Pvariable(config[CONF_SLEEP_TIMER][CONF_ID])
         await cg.register_component(num, config[CONF_SLEEP_TIMER])  # Register as component for setup()
-        await number.register_number(num, config[CONF_SLEEP_TIMER], min_value=0, max_value=420, step=1)
+        await number.register_number(num, _lgap_inherit_device_id(config, config[CONF_SLEEP_TIMER]), min_value=0, max_value=420, step=1)
         cg.add(num.set_parent(var))
         cg.add(var.set_timer_duration_number(num))
     else:
@@ -311,7 +329,7 @@ async def to_code(config):
         })
         
         num = cg.new_Pvariable(num_id)
-        await number.register_number(num, num_config, min_value=0, max_value=420, step=1)
+        await number.register_number(num, _lgap_inherit_device_id(config, num_config), min_value=0, max_value=420, step=1)
         cg.add(num.set_parent(var))
         cg.add(var.set_timer_duration_number(num))
         # Manually call setup() from the parent's setup()
@@ -319,7 +337,7 @@ async def to_code(config):
     
     # Timer remaining sensor (shows countdown)
     if CONF_TIMER_REMAINING in config:
-        sens = await sensor.new_sensor(config[CONF_TIMER_REMAINING])
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, config[CONF_TIMER_REMAINING]))
         cg.add(var.set_timer_remaining_sensor(sens))
     else:
         from esphome.core import ID
@@ -342,13 +360,13 @@ async def to_code(config):
             CONF_NAME: sens_name,
         })
         
-        sens = await sensor.new_sensor(sens_config)
+        sens = await sensor.new_sensor(_lgap_inherit_device_id(config, sens_config))
         cg.add(var.set_timer_remaining_sensor(sens))
     
     # Control lock switch - auto-generate if not explicitly configured
     if CONF_CONTROL_LOCK in config:
         sw = cg.new_Pvariable(config[CONF_CONTROL_LOCK][CONF_ID])
-        await switch.register_switch(sw, config[CONF_CONTROL_LOCK])
+        await switch.register_switch(sw, _lgap_inherit_device_id(config, config[CONF_CONTROL_LOCK]))
         cg.add(var.set_control_lock_switch(sw))
     else:
         from esphome.core import ID
@@ -369,7 +387,7 @@ async def to_code(config):
         })
         
         sw = cg.new_Pvariable(sw_id)
-        await switch.register_switch(sw, sw_config)
+        await switch.register_switch(sw, _lgap_inherit_device_id(config, sw_config))
         cg.add(var.set_control_lock_switch(sw))
     
     # Function restriction switches - auto-generate
@@ -383,7 +401,7 @@ async def to_code(config):
     for conf_key, switch_class, setter_method, id_suffix, name_suffix in function_locks:
         if conf_key in config:
             sw = cg.new_Pvariable(config[conf_key][CONF_ID])
-            await switch.register_switch(sw, config[conf_key])
+            await switch.register_switch(sw, _lgap_inherit_device_id(config, config[conf_key]))
             cg.add(getattr(var, setter_method)(sw))
         else:
             from esphome.core import ID
@@ -404,14 +422,14 @@ async def to_code(config):
             })
             
             sw = cg.new_Pvariable(sw_id)
-            await switch.register_switch(sw, sw_config)
+            await switch.register_switch(sw, _lgap_inherit_device_id(config, sw_config))
             cg.add(getattr(var, setter_method)(sw))
     
     # Plasma switch - only if feature is enabled
     if config[CONF_SUPPORTS_PLASMA]:
         if CONF_PLASMA in config:
             sw = cg.new_Pvariable(config[CONF_PLASMA][CONF_ID])
-            await switch.register_switch(sw, config[CONF_PLASMA])
+            await switch.register_switch(sw, _lgap_inherit_device_id(config, config[CONF_PLASMA]))
             cg.add(var.set_plasma_switch(sw))
         else:
             from esphome.core import ID
@@ -432,6 +450,6 @@ async def to_code(config):
             })
             
             sw = cg.new_Pvariable(sw_id)
-            await switch.register_switch(sw, sw_config)
+            await switch.register_switch(sw, _lgap_inherit_device_id(config, sw_config))
             cg.add(var.set_plasma_switch(sw))
     
