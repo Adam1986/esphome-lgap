@@ -34,6 +34,10 @@ CONFIG_SCHEMA = uart.UART_DEVICE_SCHEMA.extend(
 ).extend(cv.COMPONENT_SCHEMA)
 
 
+FINAL_VALIDATE_SCHEMA = uart.final_validate_device_schema(
+    "lgap", baud_rate=4800, data_bits=8, parity="NONE", stop_bits=1
+)
+
 async def to_code(config):
     #register device
     cg.add_global(lgap_ns.using)

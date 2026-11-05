@@ -15,7 +15,6 @@ namespace esphome
     void LGAP::dump_config()
     {
       ESP_LOGCONFIG(TAG, "LGAP:");
-      check_uart_settings(4800);
 
       ESP_LOGCONFIG(TAG, "  Flow Control Pin:");
       if (this->flow_control_pin_ != nullptr)

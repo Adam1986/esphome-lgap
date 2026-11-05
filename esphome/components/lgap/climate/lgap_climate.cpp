@@ -280,7 +280,7 @@ namespace esphome
       ESP_LOGCONFIG(TAG, "  Zone Number: %d", this->zone_number);
       ESP_LOGCONFIG(TAG, "  Mode: %d", (int)this->mode);
       ESP_LOGCONFIG(TAG, "  Swing: %d", (int)this->swing_mode);
-      ESP_LOGCONFIG(TAG, "  Temperature: %d", this->target_temperature);
+      ESP_LOGCONFIG(TAG, "  Temperature: %.1f", this->target_temperature);
     }
 
     void LGAPHVACClimate::setup()
