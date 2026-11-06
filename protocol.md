@@ -106,10 +106,10 @@ Format:
 |8 (RX8)|```XXXX_XXXX```|**Room Temperature**|Raw 0-255|(192 - value) / 3 = °C|
 |9 (RX9)|```XXXX_XXXX```|**Pipe In Temperature**|Raw 0-255|(192 - value) / 3 = °C|
 |10 (RX10)|```XXXX_XXXX```|**Pipe Out Temperature**|Raw 0-255|(192 - value) / 3 = °C|
-|11 (RX11)|```XXXX_XXXX```|**EEV Pulses**|0-255|Dynamic load index<br/>LonWorks `nvoLoadEstimate`<br/>204 = idle, lower = higher load|
-|12 (RX12)|```XXXX_XXXX```|**Power State Flag**|0: Running<br/>1: Off/Idle|LonWorks `nvoOnOff`<br/>May jitter during transitions|
-|13 (RX13)|```XXXX_XXXX```|**IDU Capacity Index**|0-255|Fixed capacity/duct size<br/>LonWorks `nciRatedCapacity`<br/>e.g., 9, 12, 24, 36...|
-|14 (RX14)|```XXXX_XXXX```|**ODU Compressor Frequency**|0-255|System-wide load index<br/>LonWorks `nvoThermalLoad`<br/>~Sum of active zone loads|
+|11 (RX11)|```XXXX_XXXX```|**EEV Pulses**|0-255|Interpreted as an EEV-related raw value; units and scaling unverified|
+|12 (RX12)|```XXXX_XXXX```|**Power State**|0-255|Auxiliary operating-state value; exact value mapping unverified. Separate from RX1 bit0 ON/OFF|
+|13 (RX13)|```XXXX_XXXX```|**IDU Capacity**|0-255|Capacity-related index; no verified BTU/h conversion|
+|14 (RX14)|```XXXX_XXXX```|**ODU Compressor Frequency**|0-255|Observed as a shared ODU value; frequency interpretation and Hz scaling unverified|
 |15 (RX15)|```XXXX_XXXX```|Checksum|0-255|(sum of RX0-RX14) XOR 0x55|
 
 <br/>
@@ -151,7 +151,7 @@ Earlier load-estimation and LonWorks mappings in this
 document should be considered provisional.
 
 
-### LonWorks Protocol Mapping
+### Historical LonWorks Mapping (Unverified)
 
 An earlier interpretation associated RX11-RX14 with the following LonWorks fields. This mapping remains tentative:
 
@@ -162,7 +162,7 @@ An earlier interpretation associated RX11-RX14 with the following LonWorks field
 |13|IDU Capacity|`nciRatedCapacity`|Fixed design capacity weight|
 |14|ODU Compressor Frequency|`nvoThermalLoad` / `nvoOduLoadFactor`|Total compressor load|
 
-These bytes enable advanced energy monitoring, load balancing analysis, and compressor duty cycle tracking.
+These earlier mappings are hypotheses, not verified equivalences. They should not be used to calculate power consumption, energy usage or compressor duty cycle.
 
 
 ## Mapped Features ✅
@@ -263,7 +263,7 @@ To change settings:
 For systems with multiple zones:
 - Use same LGAP interface for all zones
 - Poll each zone sequentially using TX3 (zone number)
-- Share load monitoring data (RX14 is identical across all zones on same ODU)
+- RX14 has been observed to return the same raw value across indoor units sharing an ODU
 - Coordinate mode changes (all zones must use same heating/cooling mode)
 
 ### Temperature Conversions
